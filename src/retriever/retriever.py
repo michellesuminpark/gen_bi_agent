@@ -16,28 +16,37 @@ class Retriever:
         column_hint = plan.get("column_hint")
         filter_hint = plan.get("filter_hint")
 
-        # Intent: trend → return full data (for now)
-        if intent == "trend":
-            return self.df
+        ## Applying the filter first to the df.
+        df_filtered = self.df
+        if filter_hint:
+            try:
+                df_filtered = self.df.query(filter_hint)
+            except Exception as e:
+                return pd.DataFrame({"error": [f"Invalid filter_hint: {e}"]})
 
+
+        ## Then uses intent
+        # Intent: trend → return filtererd data
+        if intent == "trend":
+            return df_filtered
+        
         # Intent: sum / total
         elif intent in ["sum", "total"]:
-            if column_hint and column_hint in self.df.columns:
-                return pd.DataFrame({column_hint: [self.df[column_hint].sum()]})
+            if column_hint and column_hint in df_filtered.columns:
+                return pd.DataFrame({column_hint: [df_filtered[column_hint].sum()]})
             else:
                 return pd.DataFrame({"error": ["column_hint missing or not found"]})
 
         # Intent: average
         elif intent == "average":
-            if column_hint and column_hint in self.df.columns:
-                return pd.DataFrame({column_hint: [self.df[column_hint].mean()]})
+            if column_hint and column_hint in df_filtered.columns:
+                return pd.DataFrame({column_hint: [df_filtered[column_hint].mean()]})
             else:
                 return pd.DataFrame({"error": ["column_hint missing or not found"]})
 
         # Intent: summarize
-        # temporary sub
         elif intent == "summarize":
-            return self.df.head(5)
+            return df_filtered.head(5)
 
         # Fallback: return full dataset
         return self.df

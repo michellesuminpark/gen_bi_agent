@@ -1,9 +1,16 @@
-print("✅ verifier.py loaded")
+
+
+from difflib import SequenceMatcher 
+# SequenceMatcher is character-level string similarity. 
+# Will probably work with better alternatives
 
 class Verifier:
     def evaluate(self, claim: str, evidence: str) -> dict:
+        similarity = SequenceMatcher(None, claim, evidence).ratio()
         return {
-            "faithfulness": 0.9,
-            "attribution": 0.8,
-            "coherence": 0.85
+            "faithfulness": round(similarity, 2),
+            "attribution": round(similarity * 0.95, 2),
+            "coherence": round(similarity * 0.9, 2)
         }
+
+print("✅ verifier.py upgraded")
